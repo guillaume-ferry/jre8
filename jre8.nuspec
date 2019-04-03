@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>jre8</id>
-    <version>8.0.191.20181114</version>
+    <version>8.0.2010.20190403</version>
     <title>Java SE Runtime Environment</title>
     <authors>Oracle</authors>
     <owners>Oracle</owners>
@@ -20,9 +20,8 @@ This package installs the Java version offered at https://www.java.com. It also 
 If you wish to only install the 32-bit version of Java use the /exclude parameter. The switch to exclude 32-bit is /exclude:32 and to exclude 64-bit /exclude:64 
 For example: choco install jre8 -PackageParameters "/exclude:64" -y
 This package no longer manually adds an environment variable. 
-x86 installs of Windows you can expect to see an error while reading the registry, but the script will still function normally. 
-
-This package can install 32-bit, 64-bit, or both versions. Find on [GitHub](https://github.com/proudcanadianeh/ChocoPackages/tree/master/jre8/master)</description>
+x86 installs of Windows you can expect to see an error while reading the registry, but the script will still function normally.
+    </description>
     <releaseNotes />
     <tags>java runtime environment</tags>
   </metadata>
