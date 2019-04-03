@@ -33,34 +33,26 @@
     } else {
         Write-Debug "No Package Parameters Passed in"
     }
-
-    $scriptDir = $(Split-Path -parent $MyInvocation.MyCommand.Definition)
   
     $packageName = 'jre8'
     # Modify these values -----------------------------------------------------
     # Find download URLs at http://www.java.com/en/download/manual.jsp
-    $url = 'https://javadl.oracle.com/webapps/download/AutoDL?BundleId=235725_2787e4a523244c269598db4e85c51e0c'
-    $checksum32 = 'DE27BD5A46F325E7F7874538F5CA7FBE77D25ABA9D1B3ED9B93E0A81E4EAFE35'
-    $url64 = 'https://javadl.oracle.com/webapps/download/AutoDL?BundleId=235727_2787e4a523244c269598db4e85c51e0c'
-    $checksum64 = '605D05442C1640530A8CA2938BAAFB785560AEFA88DC8CD0B43261EF3ECFA4BD'
-    $oldVersion = '8.0.1810.13'
-    $version = '8.0.1910.12'
+    $url = 'https://javadl.oracle.com/webapps/download/AutoDL?BundleId=236886_42970487e3af4f5aa5bca3f542482c60'
+    $checksum32 = '2CAA55F2A9BFFB6BE596FB34F8CE14A554A60008B2764734B41A28AE15A21EA4'
+    $url64 = 'https://javadl.oracle.com/webapps/download/AutoDL?BundleId=236888_42970487e3af4f5aa5bca3f542482c60'
+    $checksum64 = 'A2FE774DD9A8B57B3C2F7FA1A4EEA64CCE06AE642348455F8B6D888A2D5422D0'
+    $version = '8.0.2010.9'
     #--------------------------------------------------------------------------
-    $homepath = $version -replace "(\d+\.\d+)\.(\d\d)(.*)", 'jre1.$1_$2'
     $updatenumber = $version -replace "\d+\.\d+\.(\d\d\d).*", '$1'
     $installerType = 'exe'
-    $installArgs = "/s REBOOT=0 SPONSORS=0 AUTO_UPDATE=0 $32dir"
-    $installArgs64 = "/s REBOOT=0 SPONSORS=0 AUTO_UPDATE=0 $64dir"
+    $installArgs = "/s REBOOT=0 SPONSORS=0 AUTO_UPDATE=0"
+    
     $osBitness = Get-ProcessorBits
-    $cachepath = "$env:temp\$packagename\$version"
-  
-  
-    #This checks to see if current version is already installed
-    Write-Output "Checking to see if local install is already up to date..."
+    $cachepath = "$env:TEMP\$env:chocolateyPackageName\$env:chocolateyPackageVersion"
 
     #This checks to see if current version is already installed
     Write-Output "Checking to see if local install is already up to date..."
-    $checkreg = Get-UninstallRegistryKey -SoftwareName "Java 8 Update $updatenumber"
+    $checkreg = Get-UninstallRegistryKey -SoftwareName "Java 8 Update $updatenumber*"
 
     # Checks if JRE 32/64-bit in the same version is already installed and if the user excluded 32-bit Java.
     # Otherwise it downloads and installs it.
@@ -96,23 +88,16 @@
   
     #Uninstalls the previous version of Java if either version exists
     Write-Output "Searching if the previous version exists..."
-    $checkoldreg = Get-UninstallRegistryKey -SoftwareName "Java 8*"
-    if ($checkoldreg -ne $null) {
-        if ($checkoldreg -match 'Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall') {
-            Write-Warning "Uninstalling JRE version $oldVersion 32bit"
-            $item32 = $checkoldreg | Where-Object {$_.PSPath -like '*Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall*' -and $_.DisplayVersion -eq $oldVersion}
-            if ($item32) {
-                $32 = $item32.PSChildName
-                Start-ChocolateyProcessAsAdmin "/qn /norestart /X$32" -exeToRun "msiexec.exe" -validExitCodes @(0, 1605, 3010)
-            }
-        }
-        if ($checkoldreg -match 'Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall') {
-            Write-Warning "Uninstalling JRE version $oldVersion $osBitness bit" #Formatted weird because this is used if run on a x86 install
-            $item64 = $checkoldreg | Where-Object {$_.PSPath -like '*Software\Microsoft\Windows\CurrentVersion\Uninstall*' -and $_.DisplayVersion -eq $oldVersion}
-            if ($item64) {
-                $64 = $item64.PSChildName
-                Start-ChocolateyProcessAsAdmin "/qn /norestart /X$64" -exeToRun "msiexec.exe" -validExitCodes @(0, 1605, 3010)
-            }
+    $InstallerVersion = $version.Replace('.', '')
+
+    [array]$checkoldreg = Get-UninstallRegistryKey -SoftwareName "Java 8*" | Where-Object {$_.DisplayVersion.Replace('.', '') -lt $InstallerVersion}
+    if ($checkoldreg.Count -eq 0) {
+        Write-Verbose 'No installed version. Nothing to do.'
+    } elseif ($checkoldreg.count -ge 1) {
+        $checkoldreg | ForEach-Object {
+            Write-Warning "Uninstalling JRE previous : $($_.DisplayName)"
+            $msiKey = $_.PSChildName
+            Start-ChocolateyProcessAsAdmin "/qn /norestart /X$msiKey" -exeToRun "msiexec.exe" -validExitCodes @(0, 1605, 3010)
         }
     }
 } catch {
