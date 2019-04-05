@@ -57,7 +57,7 @@
     # Checks if JRE 32/64-bit in the same version is already installed and if the user excluded 32-bit Java.
     # Otherwise it downloads and installs it.
     # This is to avoid unnecessary downloads and 1603 errors.
-    if ($checkreg -ne $null) {
+    if ($null -ne $checkreg) {
         if ($checkreg -match 'Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall') {
             Write-Output "Java Runtime Environment $version (32-bit) is already installed. Skipping download and installation"
         }
@@ -72,7 +72,7 @@
 
     # Only check for the 64-bit version if the system is 64-bit
     if ($osBitness -eq 64) {
-        if ($checkreg -ne $null) {
+        if ($null -ne $checkreg) {
             if ($checkreg -match 'Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall') {
                 Write-Output "Java Runtime Environment $version (64-bit) is already installed. Skipping download and installation"
             }
@@ -102,5 +102,5 @@
     }
 } catch {
     #Write-ChocolateyFailure $packageName $($_.Exception.Message)
-    throw
+    throw $_.Exception
 }
